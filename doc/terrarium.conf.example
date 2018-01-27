@@ -1,0 +1,26 @@
+[relays]
+# wPi nomenclature for GPIO pins, see the output of 'gpio readall' for
+# details.  relay4 is currently not in use.
+lights   = 11
+heat     = 12
+humidity = 13
+relay4   = 15
+
+[location]
+# The latitude shoud be ca. the actual territory where the creatures
+# live in the nature (but reflected into your hemisphere, if
+# necessary, to get the seasons in sync).  The example (20.0) is
+# roughly Ok for pogona henrylawsoni aka rankin's dragon, if you
+# happen to live in the Northern hemisphere.  The longitude should be
+# as close of your real location as possible, to get the noon of your
+# terrarium in sync with your Sun.  Please use a GPS device or Google
+# Map, and not your hat, to get the correct number and don't be afraid
+# of long decimals.  Altitude is the actual altitude of the wild
+# habitat, not your location.
+#
+# 'latitude' and 'longitude' in degrees, positive for east/north.
+# 'altitude' in meters.  'timezone' should be the TZ of your location.
+latitude  = 20.0000000
+longitude = 12.3456789
+altitude  = 200.0
+timezone  = Europe/Helsinki
