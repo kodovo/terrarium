@@ -1,4 +1,8 @@
 Copyright (c) 2018 Pekko Metsä <pjmetsa@gmail.com>
+Copyright (c) 2014, 2017 Adafruit Industries
+Author: Tony DiCola, James DeVito, Pekko Metsä
+
+See OFL.txt for font licensing information.
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -685,3 +689,4 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
+

@@ -1,10 +1,21 @@
-[relays]
-# wPi nomenclature for GPIO pins, see the output of 'gpio readall' for
+[input]
+# DHTTYPE: 11 for DHT11, 22 for DHT22, 2302 for AM2302
+# dhtpin using the BCM nomenclature for the GPIO pins, see the output
+# of 'gpio readlall' for details.
+dhttype = 22
+dhtpin  = 23
+
+[output]
+# BCM nomenclature for GPIO pins, see the output of 'gpio readall' for
 # details.  relay4 is currently not in use.
-lights   = 11
-heat     = 12
-humidity = 13
-relay4   = 15
+lights   = 17
+heat     = 18
+humidity = 27
+relay4   = 22
+
+[climate]
+humidity = 35.0
+heat     = 30.0
 
 [location]
 # The latitude shoud be ca. the actual territory where the creatures

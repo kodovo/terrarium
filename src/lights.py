@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2018 Pekko Metsä
 
 import configparser
 #from numpy import pi
@@ -13,7 +14,7 @@ configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
 cfg.read(configfile)
 
-PIN  = int(   cfg.get('relays',   'lights'    ))
+PIN  = int(   cfg.get('output',   'lights'    ))
 LAT  = float( cfg.get('location', 'latitude'  )) * pi / 180.0
 LON  = float( cfg.get('location', 'longitude' )) * pi / 180.0
 ALT  = float( cfg.get('location', 'altitude'  ))
@@ -67,7 +68,7 @@ def init():
     output pin accordingly."""
     #GPIO.setwarnings(False)
     prev_risetime, prev_settime = suntimes(next=False)
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(PIN, GPIO.OUT)    
     if prev_risetime > prev_settime:
         # Day now
@@ -101,6 +102,6 @@ if __name__ == '__main__':
         next_ts_settime = next_settime.timestamp()
 
         scheduler.enterabs(time=next_ts_risetime, priority=1, action=lights_on)
-        scheduler.enterabs(time=next_ts_ettime, priority=1, action=lights_off)
+        scheduler.enterabs(time=next_ts_settime, priority=1, action=lights_off)
         print(scheduler.queue)
         scheduler.run()
