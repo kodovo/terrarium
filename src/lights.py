@@ -28,9 +28,10 @@ terraland.lon       = LON
 terraland.elevation = ALT
 
 # Switching the refraction off by setting the atmospheric pressure to
-# zero, and instead correcting the angle by -34 arc minutes should put
-# the predictions within 30s of the true timings.  Accurate enough for
-# us.  See e.g. https://github.com/brandon-rhodes/pyephem/issues/33
+# zero, and instead correcting the angle by -34 arc minutes.  That
+# should put the predictions within 30 seconds of the true timings.
+# Accurate enough for us.  See
+# e.g. https://github.com/brandon-rhodes/pyephem/issues/33
 terraland.pressure  = 0.0
 terraland.horizon   = '-0:34'
 
@@ -44,57 +45,62 @@ def suntimes(next=True):
     if next=False the times are for the previous events."""
     
     if not next:
-        utc_r1 = terraland.previous_rising(sun).datetime()
-        utc_s1 = terraland.previous_setting(sun).datetime()
+        utc_risetime = terraland.previous_rising(sun).datetime()
+        utc_settime = terraland.previous_setting(sun).datetime()
     else:
-        utc_r1 = terraland.next_rising(sun).datetime()
-        utc_s1 = terraland.next_setting(sun).datetime()
+        utc_risetime = terraland.next_rising(sun).datetime()
+        utc_settime = terraland.next_setting(sun).datetime()
     # The rising/setting funcions return time values in UTC, but
     # without attached zone info.  So adding the zone info after
     # fetching the values.
-    utc_r1 = utc_r1.replace(tzinfo=from_zone)
-    utc_s1 = utc_s1.replace(tzinfo=from_zone)
+    utc_risetime = utc_risetime.replace(tzinfo=from_zone)
+    utc_settime = utc_settime.replace(tzinfo=from_zone)
 
     # Moving to the local time zone.
-    r1 = utc_r1.astimezone(to_zone)
-    s1 = utc_s1.astimezone(to_zone)
-    return (r1, s1)
+    risetime = utc_risetime.astimezone(to_zone)
+    settime = utc_settime.astimezone(to_zone)
+    return (risetime, settime)
 
 def init():
+    """Fetches the previous sun rise/set times, and compares them to 
+    find out whether the Sun is above the horizon or not.  Sets the 
+    output pin accordingly."""
     #GPIO.setwarnings(False)
-    prev_r1, prev_s1 = suntimes(next=False)
+    prev_risetime, prev_settime = suntimes(next=False)
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(PIN, GPIO.OUT)    
-    if prev_r1 > prev_s1:
-        # Night now
+    if prev_risetime > prev_settime:
+        # Day now
         lights_on()
     else:
-        # Day now
+        # Night now
         lights_off()
 
 def lights_on():
+    "Sets the output pin (ie. HIGH)"
     GPIO.output(PIN, GPIO.HIGH)
 
 def lights_off():
+    "Unsets the output pin (ie. LOW)"
     GPIO.output(PIN, GPIO.LOW)
 
 def bye():
+    "Cleans the GPIO pins used in the program."
     GPIO.cleanup()
     
 if __name__ == '__main__':
     init()
     while True:
         # Fetching the next rise/set times
-        next_r1, next_s1 = suntimes()
-        print("Visual sunrise %s" % next_r1)
-        print("Visual sunset %s"  % next_s1)
+        next_risetime, next_settime = suntimes()
+        print("Visual sunrise %s" % next_risetime)
+        print("Visual sunset %s"  % next_settime)
 
-        # Datetime to timestamp
-        next_tr1 = next_r1.timestamp()
-        next_ts1 = next_s1.timestamp()
+        # Datetime to timestamp (_ts_ in the variable name)
+        next_ts_risetime = next_risetime.timestamp()
+        next_ts_settime = next_settime.timestamp()
 
-        scheduler.enterabs(time=next_tr1, priority=1, action=lights_on)
-        scheduler.enterabs(time=next_ts1, priority=1, action=lights_off)
+        scheduler.enterabs(time=next_ts_risetime, priority=1, action=lights_on)
+        scheduler.enterabs(time=next_ts_ettime, priority=1, action=lights_off)
         print(scheduler.queue)
         scheduler.run()
-    bye()
