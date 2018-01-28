@@ -27,11 +27,13 @@ import Adafruit_SSD1306
 from PIL import Image, ImageDraw, ImageFont
 import time
 import RPi.GPIO as GPIO
+from datetime import datetime
 
 configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
 cfg.read(configfile)
 
+debug     = bool( cfg.get('debug', 'debug'     ))
 sensor    =       cfg.get('input', 'dhttype'   )
 dhtpin    = int(  cfg.get('input', 'dhtpin'    ))
 heatpin   = int(  cfg.get('output', 'heat'     ))
@@ -72,7 +74,7 @@ def init():
     # Clear display.
     disp.clear()
     disp.display()
-    print(GPIO.getmode())
+    if debug: print("GPIO mode: ", GPIO.getmode())
     GPIO.setmode(GPIO.BCM)
     GPIO.setup([heatpin, humpin], GPIO.OUT, initial=GPIO.LOW)
 
@@ -85,7 +87,9 @@ if __name__ == '__main__':
     # Load default font.
     #font = ImageFont.load_default()
     font = ImageFont.truetype('Russo_One.ttf',32)
-    
+
+    heating    = False
+    humidating = False
     while True:
         # Try to grab a sensor reading.  Use the read_retry method which
         # will retry up to 15 times to get a sensor reading (waiting 2
@@ -98,12 +102,25 @@ if __name__ == '__main__':
         # If this happens try again!
         if humidity is not None and temperature is not None:
             if humidity<humilimit:
+                if not humidating:
+                    humidating=True
+                    if debug: print("Humidating ON,   humidity {0:0.1f}% ".format(humidity),
+                                    datetime.now())
                 GPIO.output(humpin, GPIO.HIGH)
             else:
+                if humidating:
+                    humidating=False
+                    if debug: print("Humidating OFF,  humidity {0:0.1f}% ".format(humidity), datetime.now())
                 GPIO.output(humpin, GPIO.LOW)
             if temperature < heatlimit:
+                if not heating:
+                    heating=True
+                    if debug: print("Heating ON,   temperature {0:0.1f}°C".format(temperature), datetime.now())
                 GPIO.output(heatpin, GPIO.HIGH)
             else:
+                if heating:
+                    heating=False
+                    if debug: print("Heating OFF,  temperature {0:0.1f}°C".format(temperature), datetime.now())
                 GPIO.output(heatpin, GPIO.LOW)
                 
             # Clear the screen by drawing a black rectancle.
@@ -112,7 +129,7 @@ if __name__ == '__main__':
                       fill=255)
             disp.image(image)
             disp.display()
-            time.sleep(2)
+            time.sleep(4)
         
             # Clear the screen by drawing a black rectancle.
             draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -120,6 +137,7 @@ if __name__ == '__main__':
                       fill=255)
             disp.image(image)
             disp.display()
-            time.sleep(1)
+            time.sleep(3)
         else:
-            print("Failed to read the sensor.")
+            print("Failed to read the sensor.", datetime.now())
+            time.sleep(10)
