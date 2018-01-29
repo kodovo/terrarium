@@ -8,7 +8,7 @@ from dateutil import tz
 import ephem
 
 import sched #, time
-import RPi.GPIO as GPIO
+import pigpio
 
 configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
@@ -40,6 +40,8 @@ sun = ephem.Sun()
 
 scheduler = sched.scheduler()
 
+p = pigpio.pi()
+
 def suntimes(next=True):
     """suntimes(next) returns a tuple of (rise_time, set_time) in the
     local timezone.  If next=True, the times are for the next events, 
@@ -66,10 +68,7 @@ def init():
     """Fetches the previous sun rise/set times, and compares them to 
     find out whether the Sun is above the horizon or not.  Sets the 
     output pin accordingly."""
-    #GPIO.setwarnings(False)
     prev_risetime, prev_settime = suntimes(next=False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(PIN, GPIO.OUT)    
     if prev_risetime > prev_settime:
         # Day now
         lights_on()
@@ -79,15 +78,16 @@ def init():
 
 def lights_on():
     "Sets the output pin (ie. HIGH)"
-    GPIO.output(PIN, GPIO.HIGH)
+    p.write(PIN, pigpio.HIGH)
+    
 
 def lights_off():
     "Unsets the output pin (ie. LOW)"
-    GPIO.output(PIN, GPIO.LOW)
+    p.write(PIN, pigpio.LOW)
 
 def bye():
-    "Cleans the GPIO pins used in the program."
-    GPIO.cleanup()
+    "Closes contact to pigpio daemon."
+    p.close()
     
 if __name__ == '__main__':
     init()
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         # Fetching the next rise/set times
         next_risetime, next_settime = suntimes()
         print("Visual sunrise %s" % next_risetime)
-        print("Visual sunset %s"  % next_settime)
+        print("Visual sunset  %s" % next_settime)
 
         # Datetime to timestamp (_ts_ in the variable name)
         next_ts_risetime = next_risetime.timestamp()
