@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2014, 2017 Adafruit Industries,
+# Copyright (c) 2017 Adafruit Industries,
 # Copyright (c) 2018 Pekko Metsä
 # Author: Tony DiCola, James DeVito, Pekko Metsä
 
@@ -22,31 +22,31 @@
 # SOFTWARE.
 
 import configparser
-import Adafruit_DHT
 import Adafruit_SSD1306
 from PIL import Image, ImageDraw, ImageFont
 import time
-import RPi.GPIO as GPIO
+import pigpio
 from datetime import datetime
+import sys
+sys.path.append('lib')
+import DHT22
 
 configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
 cfg.read(configfile)
 
 debug     = bool( cfg.get('debug', 'debug'     ))
-sensor    =       cfg.get('input', 'dhttype'   )
 dhtpin    = int(  cfg.get('input', 'dhtpin'    ))
 heatpin   = int(  cfg.get('output', 'heat'     ))
 humpin    = int(  cfg.get('output', 'humidity' ))
 humilimit = float(cfg.get('climate', 'humidity'))
 heatlimit = float(cfg.get('climate', 'heat'    ))
 
-sensor_args = { '11':   Adafruit_DHT.DHT11,
-                '22':   Adafruit_DHT.DHT22,
-                '2302': Adafruit_DHT.AM2302 }
-
-sensor = sensor_args[sensor]
-
+# DHT reader config
+INTERVAL = 3.0  # 2 seconds or less will eventually hang the DHT22
+p = pigpio.pi()
+#sensor = DHT22.sensor(p, dhtpin, LED=None, power=8)
+sensor = DHT22.sensor(p, dhtpin, LED=None)
 
 # Raspberry Pi pin configuration:
 RST = 24
@@ -59,14 +59,13 @@ width  = disp.width
 height = disp.height
 image = Image.new('1', (width, height))
 
-# Draw some shapes.
-# First define some constants to allow easy resizing of shapes.
-padding = -2
-top = padding
-bottom = height-padding
+# Define some constants to allow easy resizing of shapes.
+top = -2
 # Move left to right keeping track of the current x position for drawing
 # shapes.
 x = 0
+
+p = pigpio.pi()
 
 def init():
     # Initialize PIL-library.
@@ -74,9 +73,6 @@ def init():
     # Clear display.
     disp.clear()
     disp.display()
-    if debug: print("GPIO mode: ", GPIO.getmode())
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup([heatpin, humpin], GPIO.OUT, initial=GPIO.LOW)
 
 
 if __name__ == '__main__':
@@ -90,38 +86,40 @@ if __name__ == '__main__':
 
     heating    = False
     humidating = False
+    r=0
+    next_reading = time.time()
     while True:
-        # Try to grab a sensor reading.  Use the read_retry method which
-        # will retry up to 15 times to get a sensor reading (waiting 2
-        # seconds between each retry).
-        humidity, temperature = Adafruit_DHT.read_retry(sensor, dhtpin)
+        # Try to grab a sensor readings.
+        sensor.trigger()
+        humidity    = sensor.humidity()
+        temperature = sensor.temperature()
 
-        # Note that sometimes you won't get a reading and
-        # the results will be null (because Linux can't
-        # guarantee the timing of calls to read the sensor).
-        # If this happens try again!
-        if humidity is not None and temperature is not None:
+        # Note that sometimes you won't get a reading and the results
+        # will be large negative values (because Linux can't guarantee
+        # the timing of calls to read the sensor).  If this happens
+        # try again!
+        if humidity > -1.0 and temperature > -273.15:
             if humidity<humilimit:
                 if not humidating:
                     humidating=True
                     if debug: print("Humidating ON,   humidity {0:0.1f}% ".format(humidity),
                                     datetime.now())
-                GPIO.output(humpin, GPIO.HIGH)
+                    p.write(humpin, pigpio.HIGH)
             else:
                 if humidating:
                     humidating=False
                     if debug: print("Humidating OFF,  humidity {0:0.1f}% ".format(humidity), datetime.now())
-                GPIO.output(humpin, GPIO.LOW)
+                    p.write(humpin, pigpio.LOW)
             if temperature < heatlimit:
                 if not heating:
                     heating=True
                     if debug: print("Heating ON,   temperature {0:0.1f}°C".format(temperature), datetime.now())
-                GPIO.output(heatpin, GPIO.HIGH)
+                    p.write(heatpin, pigpio.HIGH)
             else:
                 if heating:
                     heating=False
                     if debug: print("Heating OFF,  temperature {0:0.1f}°C".format(temperature), datetime.now())
-                GPIO.output(heatpin, GPIO.LOW)
+                    p.write(heatpin, pigpio.LOW)
                 
             # Clear the screen by drawing a black rectancle.
             draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -129,7 +127,7 @@ if __name__ == '__main__':
                       fill=255)
             disp.image(image)
             disp.display()
-            time.sleep(4)
+            time.sleep(INTERVAL/2.0)
         
             # Clear the screen by drawing a black rectancle.
             draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -137,7 +135,7 @@ if __name__ == '__main__':
                       fill=255)
             disp.image(image)
             disp.display()
-            time.sleep(3)
+            time.sleep(INTERVAL/2.0)
         else:
             print("Failed to read the sensor.", datetime.now())
-            time.sleep(10)
+            time.sleep(INTERVAL)

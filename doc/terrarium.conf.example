@@ -1,8 +1,6 @@
 [input]
-# DHTTYPE: 11 for DHT11, 22 for DHT22, 2302 for AM2302
 # dhtpin using the BCM nomenclature for the GPIO pins, see the output
 # of 'gpio readlall' for details.
-dhttype = 22
 dhtpin  = 23
 
 [output]
