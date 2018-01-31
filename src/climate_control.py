@@ -37,16 +37,21 @@ cfg.read(configfile)
 
 debug     = bool( cfg.get('logs',    'debug'    ))
 dhtpin    = int(  cfg.get('input',   'dhtpin'   ))
+dhtpower  =       cfg.get('input',   'dhtpower' )
 heatpin   = int(  cfg.get('output',  'heat'     ))
 humpin    = int(  cfg.get('output',  'humidity' ))
 humilimit = float(cfg.get('climate', 'humidity' ))
 heatlimit = float(cfg.get('climate', 'heat'     ))
 
+if dhtpower.upper() == 'NONE':
+    dhtpower=None
+else:
+    dhtpower=int(dhtpower)
+
 # DHT reader config
 INTERVAL = 3.0  # 2 seconds or less will eventually hang the DHT22
 p = pigpio.pi()
-#sensor = DHT22.sensor(p, dhtpin, LED=None, power=8)
-sensor = DHT22.sensor(p, dhtpin, LED=None)
+sensor = DHT22.sensor(p, dhtpin, LED=None, power=dhtpower)
 
 # Raspberry Pi pin configuration:
 RST = 24

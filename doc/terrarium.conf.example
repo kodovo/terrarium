@@ -2,9 +2,15 @@
 debug = 1
 
 [input]
-# dhtpin using the BCM nomenclature for the GPIO pins, see the output
-# of 'gpio readlall' for details.
-dhtpin  = 23
+# Using the BCM nomenclature for the GPIO pins, see the output of
+# 'gpio readlall' for details.  DHT22 is notoriously instalbe, and
+# tends to lock down in normal use.  Therefore, we are powering the
+# sensor through a GPIO pin, which is used to power down the sensor
+# whenever it stops responding.  dhtpin is the data pin, dhtpower the
+# power pin.  Use "dhtpower = None" if you feed the power through the
+# normal 3.3V or 5V power rail instead of GPIO pin.
+dhtpin   = 23
+dhtpower = 7
 
 [output]
 # BCM nomenclature for GPIO pins, see the output of 'gpio readall' for
