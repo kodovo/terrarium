@@ -6,19 +6,20 @@ import configparser
 pi = 3.141592653589793
 from dateutil import tz
 import ephem
-
-import sched #, time
+from datetime import datetime
+import sched, time
 import pigpio
 
 configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
 cfg.read(configfile)
 
-PIN  = int(   cfg.get('output',   'lights'    ))
-LAT  = float( cfg.get('location', 'latitude'  )) * pi / 180.0
-LON  = float( cfg.get('location', 'longitude' )) * pi / 180.0
-ALT  = float( cfg.get('location', 'altitude'  ))
-ZONE =        cfg.get('location', 'timezone'  )
+debug = bool(  cfg.get('debug',    'debug'     ))
+PIN   = int(   cfg.get('output',   'lights'    ))
+LAT   = float( cfg.get('location', 'latitude'  )) * pi / 180.0
+LON   = float( cfg.get('location', 'longitude' )) * pi / 180.0
+ALT   = float( cfg.get('location', 'altitude'  ))
+ZONE  =        cfg.get('location', 'timezone'  )
 
 from_zone = tz.gettz('UTC')
 to_zone   = tz.gettz(ZONE)
@@ -38,7 +39,7 @@ terraland.horizon   = '-0:34'
 
 sun = ephem.Sun()
 
-scheduler = sched.scheduler()
+scheduler = sched.scheduler(timefunc=time.time, delayfunc=time.sleep)
 
 p = pigpio.pi()
 
@@ -78,11 +79,13 @@ def init():
 
 def lights_on():
     "Sets the output pin (ie. HIGH)"
+    if debug: print("Lights ON", datetime.now())
     p.write(PIN, pigpio.HIGH)
     
 
 def lights_off():
     "Unsets the output pin (ie. LOW)"
+    if debug: print("Lights OFF", datetime.now())
     p.write(PIN, pigpio.LOW)
 
 def bye():
