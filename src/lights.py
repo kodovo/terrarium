@@ -14,7 +14,7 @@ configfile = 'terrarium.conf'
 cfg = configparser.ConfigParser()
 cfg.read(configfile)
 
-debug = bool(  cfg.get('debug',    'debug'     ))
+debug = bool(  cfg.get('logs',     'debug'     ))
 PIN   = int(   cfg.get('output',   'lights'    ))
 LAT   = float( cfg.get('location', 'latitude'  )) * pi / 180.0
 LON   = float( cfg.get('location', 'longitude' )) * pi / 180.0
