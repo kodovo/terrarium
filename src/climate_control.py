@@ -90,7 +90,7 @@ if __name__ == '__main__':
     font = ImageFont.truetype('Russo_One.ttf',32)
 
     heating    = False
-    humidating = False
+    humidifying = False
     r=0
     next_reading = time.time()
     while True:
@@ -105,25 +105,25 @@ if __name__ == '__main__':
         # try again!
         if humidity > -1.0 and temperature > -273.15:
             if humidity<humilimit:
-                if not humidating:
-                    humidating=True
-                    if debug: print("Humidating ON,   humidity {0:0.1f}% ".format(humidity),
+                if not humidifying:
+                    humidifying=True
+                    if debug: print("Humidifying ON,   humidity {0:0.1f}% ".format(humidity),
                                     datetime.now())
                     p.write(humpin, pigpio.HIGH)
             else:
-                if humidating:
-                    humidating=False
-                    if debug: print("Humidating OFF,  humidity {0:0.1f}% ".format(humidity), datetime.now())
+                if humidifying:
+                    humidifying=False
+                    if debug: print("Humidifying OFF,  humidity {0:0.1f}% ".format(humidity), datetime.now())
                     p.write(humpin, pigpio.LOW)
             if temperature < heatlimit:
                 if not heating:
                     heating=True
-                    if debug: print("Heating ON,   temperature {0:0.1f}°C".format(temperature), datetime.now())
+                    if debug: print("Heating ON,    temperature {0:0.1f}°C".format(temperature), datetime.now())
                     p.write(heatpin, pigpio.HIGH)
             else:
                 if heating:
                     heating=False
-                    if debug: print("Heating OFF,  temperature {0:0.1f}°C".format(temperature), datetime.now())
+                    if debug: print("Heating OFF,   temperature {0:0.1f}°C".format(temperature), datetime.now())
                     p.write(heatpin, pigpio.LOW)
                 
             # Clear the screen by drawing a black rectancle.
