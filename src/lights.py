@@ -37,8 +37,6 @@ terraland.elevation = ALT
 terraland.pressure  = 0.0
 terraland.horizon   = '-0:34'
 
-sun = ephem.Sun()
-
 scheduler = sched.scheduler(timefunc=time.time, delayfunc=time.sleep)
 
 p = pigpio.pi()
@@ -47,6 +45,11 @@ def suntimes(next=True):
     """suntimes(next) returns a tuple of (rise_time, set_time) in the
     local timezone.  If next=True, the times are for the next events, 
     if next=False the times are for the previous events."""
+
+    # Sun() gets the date when instantiated, so if the script runs for
+    # several days it will need a new instantiation every day.
+    # That's why it is here, inside the function.
+    sun = ephem.Sun()
     
     if not next:
         utc_risetime = terraland.previous_rising(sun).datetime()
