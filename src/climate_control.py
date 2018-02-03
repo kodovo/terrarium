@@ -141,6 +141,17 @@ if __name__ == '__main__':
             disp.image(image)
             disp.display()
             time.sleep(INTERVAL/2.0)
+
+            # Show the time
+            draw.rectangle((0,0,width,height), outline=0, fill=0)
+            now=datetime.now()
+            draw.text((x, top), "{0:02d}:{1:02d}".format(now.hour,
+                                                         now.minute),
+                      font=font, fill=255)
+            disp.image(image)
+            disp.display()
+            time.sleep(INTERVAL/2.0)
+
         else:
             print("Failed to read the sensor.", datetime.now())
             time.sleep(INTERVAL)
