@@ -24,19 +24,6 @@ ZONE  =        cfg.get('location', 'timezone'  )
 from_zone = tz.gettz('UTC')
 to_zone   = tz.gettz(ZONE)
 
-terraland           = ephem.Observer()
-terraland.lat       = LAT
-terraland.lon       = LON
-terraland.elevation = ALT
-
-# Switching the refraction off by setting the atmospheric pressure to
-# zero, and instead correcting the angle by -34 arc minutes.  That
-# should put the predictions within 30 seconds of the true timings.
-# Accurate enough for us.  See
-# e.g. https://github.com/brandon-rhodes/pyephem/issues/33
-terraland.pressure  = 0.0
-terraland.horizon   = '-0:34'
-
 scheduler = sched.scheduler(timefunc=time.time, delayfunc=time.sleep)
 
 p = pigpio.pi()
@@ -46,9 +33,23 @@ def suntimes(next=True):
     local timezone.  If next=True, the times are for the next events, 
     if next=False the times are for the previous events."""
 
-    # Sun() gets the date when instantiated, so if the script runs for
-    # several days it will need a new instantiation every day.
-    # That's why it is here, inside the function.
+    # Instantiating Observer() here, now.  The date is fixed when
+    # instantiating, so if the script runs for several days it will
+    # need a new instantiation every day.  That's why it is here,
+    # inside the function.
+    terraland           = ephem.Observer()
+    terraland.lat       = LAT
+    terraland.lon       = LON
+    terraland.elevation = ALT
+
+    # Switching the refraction off by setting the atmospheric pressure
+    # to zero, and instead correcting the angle by -34 arc minutes.
+    # That should put the predictions within 30 seconds of the true
+    # timings.  Accurate enough for us.  See
+    # e.g. https://github.com/brandon-rhodes/pyephem/issues/33
+    terraland.pressure  = 0.0
+    terraland.horizon   = '-0:34'
+
     sun = ephem.Sun()
     
     if not next:
