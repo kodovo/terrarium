@@ -16,8 +16,8 @@ if __name__ == '__main__':
         next_ts_settime = next_settime.timestamp()
 
         lights.scheduler.enterabs(time=next_ts_risetime, priority=1,
-                                  action=lights_on)
+                                  action=lights.lights_on)
         lights.scheduler.enterabs(time=next_ts_settime, priority=1,
-                                  action=lights_off)
+                                  action=lights.lights_off)
         print(lights.scheduler.queue)
         lights.scheduler.run()
